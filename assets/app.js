@@ -124,7 +124,7 @@ async function api(path, { method = 'GET', body } = {}) {
 function picture(m, { sizes = '50vw', eager = false } = {}) {
   const wrap = h('div', { class: 'ph' });
   if (!m) return wrap;
-  if (m.color) wrap.style.setProperty('--ph', m.color);
+  // Fond d'attente : beige de la marque (les couleurs tirées des photos ne sont plus utilisées, V2).
   // Chaque appareil télécharge la taille utile : ¼, ½ ou pleine largeur selon l'affichage et la densité de l'écran.
   const set = m.w ? [[m.small, 4], [m.thumb, 2], [m.src, 1]].filter(([f]) => f).map(([f, d]) => `${mediaUrl(f)} ${Math.round(m.w / d)}w`) : [];
   const srcset = set.length > 1 ? set.join(', ') : null;
@@ -167,7 +167,7 @@ function brandImg(key, props = {}) {
 }
 
 function mascot(cls = '') {
-  const root = h('div', { class: `mascot ${cls}` }, brandImg('mascot', { alt: '', draggable: 'false' }));
+  const root = h('div', { class: `mascot ${cls}`.trim() }, brandImg('mascot', { alt: '', draggable: 'false' }));
   let current = '';
   const set = (name) => {
     root.classList.remove('is-idle', 'is-enter', 'is-hop', 'is-nope', 'is-boop');
@@ -188,6 +188,74 @@ function mascot(cls = '') {
       });
     },
   };
+}
+
+/** La mascotte qui parle : elle présente une catégorie, confirme une taille, oriente dans le menu.
+ *  Toujours dans le flux de la page (place réservée) : elle ne recouvre jamais un contenu. */
+function guide(role, text, { first = 'enter' } = {}) {
+  const m = mascot('guide__mascot');
+  const bubble = h('p', { class: 'say', 'aria-live': 'polite' }, text);
+  const root = h('div', { class: `guide guide--${role}`, 'data-mascot': role }, m.root, bubble);
+  m.root.addEventListener('click', () => m.play('boop'));
+  m.play(first);
+  return {
+    root,
+    say(t, gesture = 'hop') {
+      bubble.textContent = typo(t);
+      bubble.classList.remove('is-new');
+      void bubble.offsetWidth;
+      bubble.classList.add('is-new');
+      m.play(gesture);
+    },
+  };
+}
+
+// ---------- Promotion du moment : tout vient des données (catalog.json → promo) ----------
+// { active, theme, title, percent, text, ctaLabel, ctaTarget, note, visual, colors }. Rien à coder pour changer d'offre.
+const PROMO_COLORS = { bg: '--p-bg', bg2: '--p-bg2', text: '--p-ink', sticker: '--p-sticker', stickerText: '--p-sticker-ink', button: '--p-btn', buttonText: '--p-btn-ink' };
+function promoData(c) {
+  const pr = c?.promo;
+  if (!pr || pr.active !== true) return null;
+  const n = Number(pr.percent);
+  const percent = pr.percent !== '' && pr.percent !== null && pr.percent !== undefined && Number.isFinite(n) && n > 0 && n < 100 ? Math.round(n) : null;
+  if (!pr.title && percent === null) return null;
+  const theme = /^[a-z0-9-]{1,24}$/.test(pr.theme || '') ? pr.theme : 'caramel';
+  // Lien du bouton : une ancre de la page ou une page du catalogue, jamais une adresse extérieure.
+  const target = typeof pr.ctaTarget === 'string' && /^(#[a-z0-9-]+|\/(?!\/)[a-z0-9/-]*)$/.test(pr.ctaTarget) ? pr.ctaTarget : '#categories';
+  return { ...pr, percent, theme, target, label: pr.ctaLabel || 'Découvrir le catalogue' };
+}
+
+function promoSection(c) {
+  const pr = promoData(c);
+  if (!pr) return null;
+  const m = mascot();
+  const pct = pr.percent !== null ? h('p', { class: 'promo__pct' }, h('span', { class: 'promo__minus' }, '−'), String(pr.percent), h('span', { class: 'promo__unit' }, '\u202f%')) : null;
+  const go = (e) => {
+    m.play('hop');
+    if (!pr.target.startsWith('#')) return; // page du catalogue : navigation normale (data-link)
+    e.preventDefault();
+    document.getElementById(pr.target.slice(1))?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' });
+  };
+  const cta = h('a', { class: 'btn promo__cta', href: pr.target, 'data-link': pr.target.startsWith('/') ? '' : null, onclick: go }, pr.label, icon('arrow'));
+  const section = h('section', { class: 'promo', 'data-theme': pr.theme, 'aria-labelledby': pr.title ? 'promo-title' : null, 'aria-label': pr.title ? null : 'Offre du moment' },
+    pr.visual?.src ? h('div', { class: 'promo__visual' }, picture(pr.visual, { sizes: '(min-width: 720px) 48vw, 92vw', eager: true })) : null,
+    h('div', { class: 'promo__body' },
+      h('div', { class: 'promo__snow', 'aria-hidden': 'true' }),
+      pr.title ? h('h2', { class: 'promo__title orn', id: 'promo-title' }, pr.title) : null,
+      h('div', { class: 'promo__deal' },
+        h('div', { class: 'promo__mascot', 'data-mascot': 'promo' }, m.root),
+        pct),
+      pr.text ? h('p', { class: 'promo__text' }, pr.text) : null,
+      cta,
+      pr.note ? h('p', { class: 'promo__note' }, pr.note) : null));
+  for (const [k, prop] of Object.entries(PROMO_COLORS)) {
+    const v = pr.colors?.[k];
+    if (typeof v === 'string' && /^#[0-9a-f]{6}$/i.test(v)) section.style.setProperty(prop, v);
+  }
+  m.root.addEventListener('click', () => m.play('boop'));
+  // La mascotte arrive, puis montre la remise du doigt (au même rythme que la remise qui « tape »).
+  m.play('enter').then(() => section.classList.add('is-live'));
+  return section;
 }
 
 // ---------- Superpositions (menu, photos en grand) : le bouton retour les ferme ----------
@@ -530,15 +598,16 @@ function viewHome() {
   return h('div', {}, topbar(), pills(null),
     h('main', { class: 'page' },
       demoLine(),
+      promoSection(c),
       hero,
       h('section', { class: 'section', id: 'categories' },
-        h('div', { class: 'section__head' }, h('h2', { class: 'section__title' }, 'Les catégories')),
+        h('div', { class: 'section__head' }, h('h2', { class: 'section__title brush-under' }, 'Les catégories')),
         h('div', { class: 'tiles' }, c.categories.map((cat) =>
           h('a', { class: 'tile', href: `/c/${cat.id}`, 'data-link': '' },
             picture(cat.cover, { sizes: '(min-width: 1024px) 16vw, (min-width: 720px) 31vw, 46vw' }),
             h('div', { class: 'tile__body' }, h('span', { class: 'tile__name' }, cat.name), h('span', { class: 'tile__count' }, plural(cat.count))))))),
       featured.length ? h('section', { class: 'section' },
-        h('div', { class: 'section__head' }, h('h2', { class: 'section__title' }, 'Coups de cœur')),
+        h('div', { class: 'section__head' }, h('h2', { class: 'section__title brush-under' }, 'Coups de cœur')),
         h('div', { class: 'scroller rail' }, featured.map(card))) : null,
       h('section', { class: 'how' },
         h('h2', {}, 'Une pièce vous plaît ?'),
@@ -555,13 +624,16 @@ function viewCategory(id) {
   if (!cat) return viewNotFound();
   const items = state.maps.byCat.get(id) || [];
   document.title = `${cat.name} — ${state.info.brand.name}`;
+  // La mascotte présente la catégorie avec son accroche (données) ; sans accroche, une phrase par défaut.
+  const intro = guide('categorie', cat.tagline || `Toutes nos pièces ${cat.name.toLowerCase()}, choisies une à une.`);
   return h('div', {}, topbar(), pills(id),
     h('main', { class: 'page' },
       demoLine(),
       h('header', { class: 'cat-head' },
-        h('p', { class: 'eyebrow' }, plural(items.length)),
-        h('h1', {}, cat.name),
-        cat.tagline ? h('p', {}, cat.tagline) : null),
+        h('div', { class: 'cat-head__title' },
+          h('p', { class: 'eyebrow' }, plural(items.length)),
+          h('h1', { class: 'brush-under' }, cat.name)),
+        intro.root),
       items.length ? h('div', { class: 'grid' }, items.map(card))
         : h('div', { class: 'empty' }, h('strong', {}, 'Bientôt de nouvelles pièces ici.'), h('a', { class: 'btn btn--dark', href: '/', 'data-link': '' }, 'Voir tout le catalogue')),
       footer()));
@@ -608,8 +680,9 @@ function videoBlock(p, v) {
   return h('section', { class: 'video-block', id: 'video' }, h('h2', {}, 'En vidéo'), h('div', { class: 'video-block__frame' }, el));
 }
 
-// Tailles : si plusieurs, le client en touche une et elle est ajoutée au message de contact.
-function sizesBlock(p, cta) {
+// Tailles : si plusieurs, le client en touche une et elle est ajoutée au message de contact ; la mascotte le confirme.
+const SIZE_HINT = 'Touchez votre taille : je l’ajoute à votre message.';
+function sizesBlock(p, cta, g) {
   if (!p.sizes?.length) return null;
   if (p.sizes.length === 1 || p.status === 'vendu') {
     return h('div', { class: 'sizes' },
@@ -617,18 +690,25 @@ function sizesBlock(p, cta) {
       h('div', { class: 'sizes__list' }, p.sizes.map((s) => h('span', { class: 'size' }, s))));
   }
   const buttons = p.sizes.map((s) => h('button', {
-    class: 'size', type: 'button', 'aria-pressed': 'false',
+    class: 'size', type: 'button', 'aria-pressed': String(state.size?.slug === p.slug && state.size.value === s),
     onclick: (e) => {
       const same = state.size?.slug === p.slug && state.size.value === s;
       state.size = same ? null : { slug: p.slug, value: s };
       for (const b of buttons) b.setAttribute('aria-pressed', String(!same && b === e.currentTarget));
       cta.replaceChildren(...contactButtons(p));
+      g?.say(same ? SIZE_HINT : `Taille ${s}, c’est noté : je l’ajoute à votre message.`, same ? 'boop' : 'hop');
     },
   }, s));
   return h('div', { class: 'sizes' },
     h('span', { class: 'sizes__label' }, 'Tailles disponibles'),
     h('div', { class: 'sizes__list', role: 'group', 'aria-label': 'Choisir une taille' }, buttons),
-    h('span', { class: 'sizes__hint' }, 'Touchez votre taille : elle sera indiquée dans votre message.'));
+    g ? null : h('span', { class: 'sizes__hint' }, 'Touchez votre taille : elle sera indiquée dans votre message.'));
+}
+
+function productGuide(p) {
+  if (p.status === 'vendu') return guide('fiche', 'Celle-ci a trouvé preneur. Écrivez-nous : je vous préviens si une pièce semblable arrive.', { first: 'nope' });
+  if (p.sizes?.length > 1) return guide('fiche', state.size?.slug === p.slug ? `Taille ${state.size.value}, c’est noté : je l’ajoute à votre message.` : SIZE_HINT);
+  return guide('fiche', 'Cette pièce vous plaît ? Écrivez-nous, je transmets !');
 }
 
 function viewProduct(slug) {
@@ -642,6 +722,9 @@ function viewProduct(slug) {
   const related = (state.maps.byCat.get(cat.id) || []).filter((x) => x.id !== p.id && x.status !== 'vendu').slice(0, 8);
   if (state.size?.slug !== p.slug) state.size = null;
   const cta = h('div', { class: 'cta' }, contactButtons(p));
+  const g = productGuide(p);
+  // Avec un choix de taille, la mascotte se tient juste sous les tailles (elle confirme le choix là où on le fait).
+  const sizeGuide = p.sizes?.length > 1 && p.status !== 'vendu';
   const back = h('a', {
     class: 'back', href: catPath,
     onclick: (e) => {
@@ -660,12 +743,11 @@ function viewProduct(slug) {
           h('h1', {}, p.name),
           priceLine(p, true),
           p.status ? h('p', { class: `status status--${p.status}` }, STATUS[p.status]) : null,
-          sizesBlock(p, cta),
+          sizesBlock(p, cta, g),
+          sizeGuide ? g.root : null,
           p.description ? h('p', { class: 'desc' }, p.description) : null,
           p.details?.length ? h('dl', { class: 'details' }, p.details.map((d) => [h('dt', {}, d.label), h('dd', {}, d.value)])) : null,
-          p.status === 'vendu'
-            ? h('p', { class: 'cta__note' }, 'Cette pièce a trouvé preneur. Écrivez-nous : on vous prévient si une pièce semblable arrive.')
-            : null,
+          sizeGuide ? null : g.root,
           cta,
           h('p', { class: 'cta__note' }, 'Pas de paiement en ligne : on vous répond pour la réserver.'))),
       video ? videoBlock(p, video) : null,
@@ -679,23 +761,28 @@ function viewProduct(slug) {
 function viewNotFound() {
   document.title = `Page introuvable — ${state.info.brand.name}`;
   return h('div', {}, topbar(), h('main', { class: 'page' },
-    h('div', { class: 'empty' }, h('strong', {}, 'Cette page n’existe pas ou plus.'), h('a', { class: 'btn btn--dark', href: '/', 'data-link': '' }, 'Retour au catalogue')),
+    h('div', { class: 'empty' }, h('strong', {}, 'Cette page n’existe pas ou plus.'),
+      guide('introuvable', 'Oups, je ne trouve rien ici. Je vous ramène au catalogue ?', { first: 'nope' }).root,
+      h('a', { class: 'btn btn--dark', href: '/', 'data-link': '' }, 'Retour au catalogue')),
     footer()));
 }
 
 // ---------- Menu ----------
 function openMenu() {
   const b = state.info.brand;
+  const pr = promoData(state.catalog);
   const el = h('div', { class: 'menu', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Menu' },
     h('div', { class: 'menu__head' },
       b.logo ? brandImg('logo', { alt: b.name }) : h('strong', {}, b.name),
       h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Fermer le menu', onclick: () => overlay.dismiss() }, icon('close'))),
+    b.mascot ? guide('menu', 'Bonne visite ! Touchez une catégorie, je vous y emmène.').root : null,
+    pr ? h('a', { class: 'menu__promo', href: '/', 'data-link': '', 'data-theme': pr.theme },
+      h('span', {}, pr.title || 'Offre du moment'), pr.percent !== null ? h('small', {}, `−${pr.percent}\u202f%`) : null) : null,
     h('nav', { class: 'menu__nav', 'aria-label': 'Catégories' },
       h('a', { href: '/', 'data-link': '' }, h('span', {}, 'Accueil'), h('small', {}, plural(state.catalog.products.length))),
       state.catalog.categories.map((c) => h('a', { href: `/c/${c.id}`, 'data-link': '' }, h('span', {}, c.name), h('small', {}, plural(c.count))))),
     h('div', { class: 'menu__foot' }, contactButtons(null),
-      h('button', { class: 'menu__logout', type: 'button', onclick: logout }, 'Se déconnecter')),
-    b.mascot ? brandImg('mascot', { class: 'menu__mascot', alt: '' }) : null);
+      h('button', { class: 'menu__logout', type: 'button', onclick: logout }, 'Se déconnecter')));
   overlay.open(el);
   companion.close();
 }
