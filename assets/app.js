@@ -13,6 +13,8 @@ const ICONS = {
   back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>',
   play: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg>',
   up: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg>',
+  chevron: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9.5l6 6 6-6"/></svg>',
+  next: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 6l6 6-6 6"/></svg>',
   whatsapp: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 19.5l1.2-3.6A8 8 0 1 1 8.6 18.6z"/><path d="M9.2 8.6c.2-.4.4-.5.7-.5h.5c.2 0 .4.1.5.4l.6 1.5c.1.2 0 .5-.1.7l-.5.6c.5 1 1.4 1.9 2.4 2.4l.6-.5c.2-.2.5-.2.7-.1l1.5.6c.3.1.4.3.4.5v.5c0 .3-.1.5-.5.7-.6.3-1.4.5-2.3.2a8.3 8.3 0 0 1-4.9-4.9c-.3-.8-.1-1.6.2-2.2z"/></svg>',
   instagram: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r="1.1" fill="currentColor" stroke="none"/></svg>',
   phone: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6.6 3.5h2.6l1.3 4-2 1.4a12 12 0 0 0 6.6 6.6l1.4-2 4 1.3v2.6a2 2 0 0 1-2.2 2A16.5 16.5 0 0 1 4.6 5.7a2 2 0 0 1 2-2.2z"/></svg>',
@@ -331,6 +333,7 @@ document.addEventListener('click', (e) => {
 function render({ scrollY = 0, transition = false } = {}) {
   const route = parseRoute(window.location.pathname);
   const draw = () => {
+    closeNav();
     let view;
     if (!state.authed) view = viewWelcome();
     else if (route.name === 'home') view = viewHome();
@@ -357,9 +360,25 @@ async function loadCatalog() {
   for (const p of c.products) byCat.get(p.category)?.push(p);
   for (const list of byCat.values()) list.sort((a, b) => (a.status === 'vendu') - (b.status === 'vendu'));
   state.catalog = c;
-  state.maps = { cat, bySlug, byCat };
+  state.maps = { cat, bySlug, byCat, universes: universesOf(c), uniOf: new Map() };
+  for (const u of state.maps.universes) for (const x of u.cats) state.maps.uniOf.set(x.id, u);
   return 200;
 }
+
+// Univers du menu principal (Habillements, Football…) : tout vient des données (catalog.json → universes, et
+// category.universe). Une catégorie sans univers connu va dans « Autres » ; sans univers du tout, un seul groupe.
+// Un univers sans catégorie n'est pas affiché. Rien à coder pour ajouter un univers ou une catégorie.
+function universesOf(c) {
+  const list = (Array.isArray(c.universes) ? c.universes : [])
+    .filter((u) => u && typeof u.id === 'string' && typeof u.name === 'string' && u.name.trim())
+    .filter((u, i, all) => all.findIndex((v) => v.id === u.id) === i)
+    .map((u) => ({ id: u.id, name: u.name, cats: c.categories.filter((x) => x.universe === u.id) }));
+  const known = new Set(list.map((u) => u.id));
+  const rest = c.categories.filter((x) => !known.has(x.universe));
+  if (rest.length) list.push({ id: '', name: list.length ? 'Autres' : 'Catégories', cats: rest });
+  return list.filter((u) => u.cats.length);
+}
+const countOf = (catId) => state.maps.byCat.get(catId)?.length || 0;
 
 function contactLinks(p) {
   const c = state.catalog?.contact || {};
@@ -432,16 +451,65 @@ function topbar() {
   return bar;
 }
 
-function pills(activeId) {
-  const sc = h('div', { class: 'scroller' }, state.catalog.categories.map((c) =>
-    h('a', { class: `pill${c.id === activeId ? ' is-active' : ''}`, href: `/c/${c.id}`, 'data-link': '', 'aria-current': c.id === activeId ? 'page' : null }, c.name)));
-  if (activeId) {
-    window.requestAnimationFrame(() => {
-      const el = sc.querySelector('.is-active');
-      if (el) sc.scrollLeft = el.offsetLeft - (sc.clientWidth - el.clientWidth) / 2;
+// ---------- Menu principal : les univers côte à côte, chacun ouvre au clic la liste de ses catégories ----------
+// Navigation « à volets » (bouton + liste de liens) : un seul volet ouvert ; il se ferme par un second clic,
+// un clic ou un toucher à côté, la touche Échap, ou en choisissant une catégorie.
+let navOpen = null; // { item, btn }
+function closeNav({ focus = false } = {}) {
+  if (!navOpen) return;
+  const { item, btn } = navOpen;
+  navOpen = null;
+  item.classList.remove('is-open');
+  btn.setAttribute('aria-expanded', 'false');
+  item.closest('.unav')?.classList.remove('has-open');
+  if (focus) btn.focus();
+}
+document.addEventListener('click', (e) => { if (navOpen && !navOpen.item.contains(e.target)) closeNav(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && navOpen) { e.preventDefault(); closeNav({ focus: true }); } });
+
+function mainNav(activeCatId) {
+  const current = activeCatId ? state.maps.uniOf.get(activeCatId) : null;
+  const items = state.maps.universes.map((u, k) => {
+    const panelId = `unav-${k}`;
+    const links = u.cats.map((x, i) => h('li', { style: `--i:${i}` },
+      h('a', { class: 'unav__link', href: `/c/${x.id}`, 'data-link': '', 'aria-current': x.id === activeCatId ? 'page' : null, onclick: () => closeNav() },
+        h('span', { class: 'unav__thumb', 'data-cat': x.id }),
+        h('span', { class: 'unav__name' }, x.name),
+        h('span', { class: 'unav__count' }, plural(countOf(x.id))),
+        icon('next'))));
+    const panel = h('div', { class: 'unav__panel', id: panelId }, h('ul', { class: 'unav__list', role: 'list' }, links));
+    const btn = h('button', {
+      class: `unav__btn${u === current ? ' is-current' : ''}`, type: 'button', 'aria-expanded': 'false', 'aria-controls': panelId,
+      onclick: () => (navOpen?.item === item ? closeNav() : open()),
+    }, h('span', {}, u.name), icon('chevron'));
+    const item = h('div', { class: 'unav__item' }, btn, panel);
+    function open() {
+      closeNav();
+      // Vignettes chargées à la première ouverture seulement (rien à télécharger tant que le menu reste fermé).
+      for (const t of panel.querySelectorAll('.unav__thumb:empty')) t.append(picture(state.maps.cat.get(t.dataset.cat)?.cover, { sizes: '40px', eager: true }));
+      item.classList.add('is-open');
+      btn.setAttribute('aria-expanded', 'true');
+      nav.classList.add('has-open');
+      navOpen = { item, btn };
+      companion.close();
+    }
+    // Clavier : flèches haut/bas pour parcourir la liste (elle s'ouvre si besoin) ; Tab hors du volet le referme.
+    item.addEventListener('keydown', (e) => {
+      if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+      const all = [...panel.querySelectorAll('.unav__link')];
+      if (!all.length) return;
+      e.preventDefault();
+      if (navOpen?.item !== item) open();
+      const i = all.indexOf(document.activeElement);
+      all[e.key === 'ArrowDown' ? (i + 1) % all.length : (i <= 0 ? all.length - 1 : i - 1)].focus();
     });
-  }
-  return h('nav', { class: 'pills', 'aria-label': 'Catégories' }, sc);
+    item.addEventListener('focusout', (e) => { if (navOpen?.item === item && e.relatedTarget && !item.contains(e.relatedTarget)) closeNav(); });
+    return item;
+  });
+  const nav = h('nav', { class: 'unav', 'aria-label': 'Menu principal' }, h('div', { class: `unav__bar${items.length > 2 ? ' is-many' : ''}`, style: `--n:${items.length}` }, items));
+  // Voile léger sous le menu ouvert : un toucher à côté ferme le volet sans rien déclencher dessous.
+  const veil = h('div', { class: 'unav__veil', 'aria-hidden': 'true', onclick: () => closeNav() });
+  return [nav, veil];
 }
 
 function priceLine(p, big = false) {
@@ -595,17 +663,21 @@ function viewHome() {
         home.subtitle ? h('p', { class: 'hero__sub' }, home.subtitle) : null,
         h('a', { class: 'btn btn--light', href: '#categories', onclick: (e) => { e.preventDefault(); document.getElementById('categories')?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' }); } }, 'Découvrir', icon('arrow'))))
     : null;
-  return h('div', {}, topbar(), pills(null),
+  return h('div', {}, topbar(), mainNav(null),
     h('main', { class: 'page' },
       demoLine(),
       promoSection(c),
       hero,
       h('section', { class: 'section', id: 'categories' },
         h('div', { class: 'section__head' }, h('h2', { class: 'section__title brush-under' }, 'Les catégories')),
-        h('div', { class: 'tiles' }, c.categories.map((cat) =>
-          h('a', { class: 'tile', href: `/c/${cat.id}`, 'data-link': '' },
-            picture(cat.cover, { sizes: '(min-width: 1024px) 16vw, (min-width: 720px) 31vw, 46vw' }),
-            h('div', { class: 'tile__body' }, h('span', { class: 'tile__name' }, cat.name), h('span', { class: 'tile__count' }, plural(cat.count))))))),
+        // Une rangée par univers, dans l'ordre du menu principal.
+        state.maps.universes.map((u) => h('div', { class: 'universe' },
+          state.maps.universes.length > 1 ? h('h3', { class: 'universe__title' }, u.name, h('small', {}, plural(u.cats.reduce((n, x) => n + countOf(x.id), 0)))) : null,
+          h('div', { class: 'tiles', 'data-n': u.cats.length }, u.cats.map((cat, i, all) =>
+            h('a', { class: 'tile', href: `/c/${cat.id}`, 'data-link': '' },
+              // Largeur affichée : vignette élargie si l'univers a 1 à 3 catégories (ordinateur) ou si elle est seule sur sa ligne (téléphone).
+              picture(cat.cover, { sizes: `(min-width: 1024px) ${all.length <= 3 ? Math.round(96 / all.length) : 16}vw, (min-width: 720px) 31vw, ${i === all.length - 1 && all.length % 2 ? 92 : 46}vw` }),
+              h('div', { class: 'tile__body' }, h('span', { class: 'tile__name' }, cat.name), h('span', { class: 'tile__count' }, plural(countOf(cat.id)))))))))),
       featured.length ? h('section', { class: 'section' },
         h('div', { class: 'section__head' }, h('h2', { class: 'section__title brush-under' }, 'Coups de cœur')),
         h('div', { class: 'scroller rail' }, featured.map(card))) : null,
@@ -623,19 +695,26 @@ function viewCategory(id) {
   const cat = state.maps.cat.get(id);
   if (!cat) return viewNotFound();
   const items = state.maps.byCat.get(id) || [];
+  const u = state.maps.uniOf.get(id);
   document.title = `${cat.name} — ${state.info.brand.name}`;
   // La mascotte présente la catégorie avec son accroche (données) ; sans accroche, une phrase par défaut.
-  const intro = guide('categorie', cat.tagline || `Toutes nos pièces ${cat.name.toLowerCase()}, choisies une à une.`);
-  return h('div', {}, topbar(), pills(id),
+  // Catégorie encore vide : un message propre et les catégories voisines du même univers, jamais une erreur.
+  const intro = guide('categorie', items.length ? cat.tagline || `Toutes nos pièces ${cat.name.toLowerCase()}, choisies une à une.`
+    : 'Rien ici pour l’instant : les premières pièces arrivent bientôt !', { first: items.length ? 'enter' : 'nope' });
+  const near = (u?.cats || []).filter((x) => x.id !== id && countOf(x.id));
+  return h('div', {}, topbar(), mainNav(id),
     h('main', { class: 'page' },
       demoLine(),
       h('header', { class: 'cat-head' },
         h('div', { class: 'cat-head__title' },
-          h('p', { class: 'eyebrow' }, plural(items.length)),
+          h('p', { class: 'eyebrow' }, u && state.maps.universes.length > 1 ? `${u.name} · ${plural(items.length)}` : plural(items.length)),
           h('h1', { class: 'brush-under' }, cat.name)),
         intro.root),
       items.length ? h('div', { class: 'grid' }, items.map(card))
-        : h('div', { class: 'empty' }, h('strong', {}, 'Bientôt de nouvelles pièces ici.'), h('a', { class: 'btn btn--dark', href: '/', 'data-link': '' }, 'Voir tout le catalogue')),
+        : h('div', { class: 'empty empty--cat' }, h('strong', {}, 'Bientôt de nouvelles pièces ici.'),
+          near.length ? h('p', { class: 'empty__near' }, 'En attendant, voyez aussi :') : null,
+          near.length ? h('div', { class: 'empty__links' }, near.map((x) => h('a', { class: 'pill', href: `/c/${x.id}`, 'data-link': '' }, x.name))) : null,
+          h('a', { class: 'btn btn--dark', href: '/', 'data-link': '' }, 'Voir tout le catalogue')),
       footer()));
 }
 
@@ -733,7 +812,7 @@ function viewProduct(slug) {
     },
     'data-link': '',
   }, icon('back'), cat.name);
-  return h('div', {}, topbar(),
+  return h('div', {}, topbar(), mainNav(p.category),
     h('main', { class: 'page' },
       back,
       h('article', { class: 'product' },
@@ -760,7 +839,7 @@ function viewProduct(slug) {
 
 function viewNotFound() {
   document.title = `Page introuvable — ${state.info.brand.name}`;
-  return h('div', {}, topbar(), h('main', { class: 'page' },
+  return h('div', {}, topbar(), state.maps ? mainNav(null) : null, h('main', { class: 'page' },
     h('div', { class: 'empty' }, h('strong', {}, 'Cette page n’existe pas ou plus.'),
       guide('introuvable', 'Oups, je ne trouve rien ici. Je vous ramène au catalogue ?', { first: 'nope' }).root,
       h('a', { class: 'btn btn--dark', href: '/', 'data-link': '' }, 'Retour au catalogue')),
@@ -780,7 +859,10 @@ function openMenu() {
       h('span', {}, pr.title || 'Offre du moment'), pr.percent !== null ? h('small', {}, `−${pr.percent}\u202f%`) : null) : null,
     h('nav', { class: 'menu__nav', 'aria-label': 'Catégories' },
       h('a', { href: '/', 'data-link': '' }, h('span', {}, 'Accueil'), h('small', {}, plural(state.catalog.products.length))),
-      state.catalog.categories.map((c) => h('a', { href: `/c/${c.id}`, 'data-link': '' }, h('span', {}, c.name), h('small', {}, plural(c.count))))),
+      // Mêmes univers que le menu principal (Habillements, Football…), chacun avec ses catégories.
+      state.maps.universes.map((u) => [
+        state.maps.universes.length > 1 ? h('p', { class: 'menu__group' }, u.name) : null,
+        u.cats.map((c) => h('a', { href: `/c/${c.id}`, 'data-link': '' }, h('span', {}, c.name), h('small', {}, plural(countOf(c.id)))))])),
     h('div', { class: 'menu__foot' }, contactButtons(null),
       h('button', { class: 'menu__logout', type: 'button', onclick: logout }, 'Se déconnecter')));
   overlay.open(el);
