@@ -155,21 +155,27 @@ p { margin: 0; }
 }
 
 /* ---------- Bulle de la mascotte (guide) : elle parle, elle ne décore pas ---------- */
-.guide { display: grid; grid-template-columns: 74px minmax(0, 1fr); align-items: end; gap: 4px 8px; }
-.guide__mascot { width: 100%; cursor: pointer; }
+.guide { display: grid; grid-template-columns: 74px minmax(0, 1fr); align-items: center; gap: 4px 8px; }
+/* Case carrée : chaque déclinaison de la mascotte (large ou haute) y tient entière, centrée face à la bulle, sans déformation. */
+.guide__mascot { width: 100%; aspect-ratio: 1; cursor: pointer; }
+.guide__mascot img { height: 100%; object-fit: contain; object-position: 50% 50%; }
 .guide .mascot.is-idle { animation: m-bob 3.4s ease-in-out infinite; }
 .guide .mascot.is-hop { animation: m-hop-small .7s var(--ease) both; }
 .say {
-  position: relative; align-self: end; margin-bottom: 27px; padding: 11px 15px; border-radius: 18px 18px 18px 6px;
+  position: relative; align-self: center; padding: 11px 15px; border-radius: 18px;
   background: var(--blanc-casse); color: var(--chocolat); font-size: 15px; font-weight: 700; line-height: 1.35; text-wrap: pretty;
   box-shadow: 0 0 0 1.5px var(--sable), 0 14px 26px -18px rgba(var(--ombre), .55);
 }
-.say::before { /* pointe de la bulle, vers la main tendue de la mascotte */
-  content: ""; position: absolute; left: -7px; bottom: 6px; width: 14px; height: 14px; background: var(--blanc-casse);
+.say::before { /* pointe de la bulle, à mi-hauteur, vers la mascotte */
+  content: ""; position: absolute; left: -7px; top: calc(50% - 7px); width: 14px; height: 14px; background: var(--blanc-casse);
   border-left: 1.5px solid var(--sable); border-bottom: 1.5px solid var(--sable); transform: rotate(45deg) skew(8deg, 8deg); border-radius: 0 0 0 4px;
 }
-.say.is-new { animation: say-pop .45s var(--spring); }
-@keyframes say-pop { 0% { transform: scale(.92); } 100% { transform: none; } }
+/* 2e ligne de la bulle : ce que la mascotte précise sur chaque page (données : quality). */
+.say__note { display: block; margin-top: 6px; font-weight: 900; color: var(--marron-chaud); }
+/* Accueil et pages catégorie : la mascotte de la page, assez grande pour voir sa tenue (crampons, maillot…). */
+.guide--accueil { margin: -4px var(--pad) 22px; max-width: 520px; grid-template-columns: 112px minmax(0, 1fr); }
+.cat-head .guide { grid-template-columns: 112px minmax(0, 1fr); }
+.guide--fiche { grid-template-columns: 96px minmax(0, 1fr); }
 
 /* ---------- Écran du code : la composition du visuel 545 (pinceaux en coin, mascotte, logo) ---------- */
 .welcome {
@@ -237,7 +243,7 @@ p { margin: 0; }
 .icon-btn:active { background: rgba(var(--ombre), .08); }
 .icon-btn svg { width: 24px; height: 24px; }
 
-/* ---------- Menu principal : les univers côte à côte (Habillements, Football…), chacun ouvre sa liste au clic ---------- */
+/* ---------- Menu principal : les univers côte à côte (Vêtements, Football…), chacun ouvre sa liste au clic ---------- */
 .unav { position: sticky; top: calc(var(--topbar) + var(--safe-t)); z-index: 35; padding: 4px var(--pad) 10px; background: rgba(247, 239, 228, .96); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
 .unav__bar { display: grid; grid-template-columns: repeat(var(--n, 2), minmax(0, 1fr)); gap: 8px; }
 @media (max-width: 719px) {
@@ -432,6 +438,7 @@ p { margin: 0; }
 .card { display: grid; gap: 10px; align-content: start; }
 .card__media { position: relative; border-radius: var(--radius-sm); overflow: hidden; box-shadow: 0 12px 24px -20px rgba(var(--ombre), .7); }
 .card__name { font-size: 15px; font-weight: 700; line-height: 1.3; color: var(--chocolat); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.card__colors { margin-top: -6px; font-size: 12px; font-weight: 800; letter-spacing: .04em; color: var(--marron-chaud); }
 .card__meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; margin-top: -4px; }
 .price { font-weight: 900; font-size: 16px; color: var(--chocolat); }
 .price-before { font-size: 13px; color: var(--chocolat-doux); text-decoration: line-through; }
@@ -493,12 +500,28 @@ p { margin: 0; }
 .status--reserve::before { background: var(--marron-chaud); box-shadow: 0 0 0 3px var(--sable); }
 .status--vendu { color: var(--chocolat-doux); }
 .status--vendu::before { background: var(--sable); box-shadow: none; }
-.sizes { display: grid; gap: 8px; }
+.sizes { display: grid; gap: 4px; }
 .sizes__label, .details dt { font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--chocolat-doux); }
-.sizes__list { display: flex; flex-wrap: wrap; gap: 8px; }
-.size { min-width: 48px; min-height: 44px; padding: 9px 12px; border-radius: 12px; border: 1.5px solid var(--sable); text-align: center; font-weight: 800; font-size: 14px; color: var(--chocolat); background: var(--blanc-casse); transition: background .15s, color .15s, border-color .15s, transform .2s var(--spring); }
-.size[aria-pressed="true"] { background: var(--chocolat); border-color: var(--chocolat); color: var(--blanc-casse); transform: rotate(-3deg) scale(1.04); }
-.sizes__hint { font-size: 13px; color: var(--chocolat-doux); }
+/* Tailles écrites en clair (rien à cocher : c'est un catalogue). */
+.sizes__text { font-size: 18px; font-weight: 800; letter-spacing: .02em; color: var(--chocolat); }
+/* Simple mention à côté du prix (ex. « Flocage : +5 € »). */
+.price-note { font-size: 16px; font-weight: 800; color: var(--marron-chaud); }
+.cat-head__title .price-note { margin-top: 2px; }
+/* Coloris : une vignette par coloris, sous la photo ; la toucher montre ses photos. */
+.colors { display: grid; gap: 10px; padding: 14px var(--pad) 0; }
+.colors__label { font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--chocolat-doux); }
+.colors__current { color: var(--chocolat); }
+.colors__list { display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; padding: 4px 4px 2px; margin: -4px -4px 0; }
+.colors__list::-webkit-scrollbar { display: none; }
+.swatch { flex: none; display: grid; justify-items: center; align-content: start; gap: 6px; width: 70px; color: var(--chocolat); }
+.swatch__img { display: block; width: 58px; height: 58px; border-radius: 50%; overflow: hidden; box-shadow: 0 0 0 1.5px var(--sable); transition: box-shadow .2s, transform .2s var(--spring); }
+.swatch__img .ph { aspect-ratio: 1; height: 100%; }
+.swatch__name { font-size: 12px; font-weight: 800; line-height: 1.2; text-align: center; }
+.swatch[aria-pressed="true"] .swatch__img { box-shadow: 0 0 0 2px var(--creme), 0 0 0 4.5px var(--chocolat); }
+.swatch:active .swatch__img { transform: scale(.94); }
+.swatch--text { align-self: center; width: auto; padding: 8px 12px; border-radius: 999px; background: var(--beige); }
+.gallery.is-swap { animation: swap-in .32s var(--ease); }
+@keyframes swap-in { from { opacity: .4; } to { opacity: 1; } }
 .desc { font-size: 17px; line-height: 1.55; }
 .details { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 10px 18px; padding: 16px 0; border-top: 1px solid var(--sable); border-bottom: 1px solid var(--sable); }
 .details dd { margin: 0; font-size: 15px; font-weight: 600; }
@@ -553,7 +576,7 @@ p { margin: 0; }
 .menu__foot { margin-top: 20px; display: grid; gap: 10px; position: relative; z-index: 1; }
 .menu__logout { margin-top: 6px; justify-self: center; font-size: 14px; font-weight: 800; text-decoration: underline; text-underline-offset: 3px; padding: 8px; color: var(--chocolat); }
 .menu .guide { margin: 2px 0 4px; max-width: 360px; grid-template-columns: 62px minmax(0, 1fr); }
-.menu .guide .say { margin-bottom: 20px; font-size: 14px; padding: 9px 13px; }
+.menu .guide .say { font-size: 14px; padding: 9px 13px; }
 .menu__mascot { width: 96px; align-self: flex-start; margin-top: auto; padding-top: 14px; }
 
 /* ---------- Compagnon : la mascotte dans la case libre à droite de la barre du haut ----------
@@ -619,7 +642,11 @@ p { margin: 0; }
   .promo__title { margin-top: 0; font-size: 40px; }
   .promo__pct { font-size: 104px; }
   .promo__mascot { width: 150px; }
-  .cat-head { grid-template-columns: minmax(0, 1fr) minmax(0, 380px); align-items: end; gap: 24px; }
+  .cat-head { grid-template-columns: minmax(0, 1fr) minmax(0, 440px); align-items: end; gap: 24px; }
+  /* Ordinateur : mascotte de la page plus présente (la place ne manque pas). */
+  .cat-head .guide { grid-template-columns: 132px minmax(0, 1fr); gap: 4px 12px; }
+  .guide--accueil { grid-template-columns: 140px minmax(0, 1fr); gap: 4px 14px; max-width: 640px; margin-bottom: 28px; }
+  .guide--accueil .say { font-size: 16px; padding: 14px 18px; }
   /* Menu principal : boutons centrés, chaque volet s'ouvre sous son bouton (confortable à la souris). */
   .unav { padding-top: 6px; }
   .unav__bar { grid-template-columns: repeat(var(--n, 2), minmax(0, 250px)); justify-content: center; gap: 12px; }
@@ -641,6 +668,7 @@ p { margin: 0; }
   .tiles[data-n="1"] .tile .ph { aspect-ratio: 3 / 1; }
   .product { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 56px; padding: 0 var(--pad); align-items: start; }
   .product .thumbs { padding-left: 0; padding-right: 0; }
+  .product .colors { padding-left: 0; padding-right: 0; }
   .gallery { border-radius: var(--radius); overflow: hidden; }
   .product .info { padding: 8px 0 0; position: sticky; top: calc(var(--topbar) + 72px); }
   .product__media { width: 100%; max-width: calc((100vh - 190px) * .8); justify-self: end; }

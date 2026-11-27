@@ -16,7 +16,6 @@ const ICONS = {
   chevron: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9.5l6 6 6-6"/></svg>',
   next: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 6l6 6-6 6"/></svg>',
   whatsapp: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 19.5l1.2-3.6A8 8 0 1 1 8.6 18.6z"/><path d="M9.2 8.6c.2-.4.4-.5.7-.5h.5c.2 0 .4.1.5.4l.6 1.5c.1.2 0 .5-.1.7l-.5.6c.5 1 1.4 1.9 2.4 2.4l.6-.5c.2-.2.5-.2.7-.1l1.5.6c.3.1.4.3.4.5v.5c0 .3-.1.5-.5.7-.6.3-1.4.5-2.3.2a8.3 8.3 0 0 1-4.9-4.9c-.3-.8-.1-1.6.2-2.2z"/></svg>',
-  instagram: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r="1.1" fill="currentColor" stroke="none"/></svg>',
   phone: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6.6 3.5h2.6l1.3 4-2 1.4a12 12 0 0 0 6.6 6.6l1.4-2 4 1.3v2.6a2 2 0 0 1-2.2 2A16.5 16.5 0 0 1 4.6 5.7a2 2 0 0 1 2-2.2z"/></svg>',
 };
 const STATUS = { disponible: 'Disponible', reserve: 'Réservé', vendu: 'Vendu' };
@@ -168,8 +167,16 @@ function brandImg(key, props = {}) {
   return h('img', { src: b[key], width: d?.w, height: d?.h, ...props });
 }
 
-function mascot(cls = '') {
-  const root = h('div', { class: `mascot ${cls}`.trim() }, brandImg('mascot', { alt: '', draggable: 'false' }));
+/** art (facultatif) : une déclinaison de la mascotte fournie par Le Débarras ({ src, w, h } des données,
+ *  ex. la mascotte en crampons pour la catégorie Crampons) ; sinon la mascotte officielle. */
+function mascot(cls = '', art = null) {
+  const own = typeof art?.src === 'string' && art.src !== '';
+  const img = own
+    ? h('img', { src: mediaUrl(art.src), width: art.w, height: art.h, alt: '', draggable: 'false', decoding: 'async' })
+    : brandImg('mascot', { alt: '', draggable: 'false' });
+  // Déclinaison introuvable (fichier absent ou mal nommé) : la mascotte officielle prend sa place, jamais d'image cassée.
+  if (own && state.info.brand.mascot) img.addEventListener('error', () => { img.src = state.info.brand.mascot; }, { once: true });
+  const root = h('div', { class: `mascot ${cls}`.trim() }, img);
   let current = '';
   const set = (name) => {
     root.classList.remove('is-idle', 'is-enter', 'is-hop', 'is-nope', 'is-boop');
@@ -192,25 +199,19 @@ function mascot(cls = '') {
   };
 }
 
-/** La mascotte qui parle : elle présente une catégorie, confirme une taille, oriente dans le menu.
+/** La mascotte qui parle : elle accueille, présente une catégorie ou une pièce, oriente dans le menu.
+ *  note : 2e ligne de la bulle (ex. « Toutes nos pièces sont en qualité 1.1 ! », catalog.json → quality).
  *  Toujours dans le flux de la page (place réservée) : elle ne recouvre jamais un contenu. */
-function guide(role, text, { first = 'enter' } = {}) {
-  const m = mascot('guide__mascot');
-  const bubble = h('p', { class: 'say', 'aria-live': 'polite' }, text);
+function guide(role, text, { first = 'enter', art = null, note = null } = {}) {
+  const m = mascot('guide__mascot', art);
+  const bubble = h('p', { class: 'say' }, text, note ? h('strong', { class: 'say__note' }, note) : null);
   const root = h('div', { class: `guide guide--${role}`, 'data-mascot': role }, m.root, bubble);
   m.root.addEventListener('click', () => m.play('boop'));
   m.play(first);
-  return {
-    root,
-    say(t, gesture = 'hop') {
-      bubble.textContent = typo(t);
-      bubble.classList.remove('is-new');
-      void bubble.offsetWidth;
-      bubble.classList.add('is-new');
-      m.play(gesture);
-    },
-  };
+  return { root };
 }
+/** Phrase que la mascotte précise sur les pages (données) ; absente ou vide : rien. */
+const qualityNote = () => (typeof state.catalog?.quality === 'string' && state.catalog.quality.trim() ? state.catalog.quality.trim() : null);
 
 // ---------- Promotion du moment : tout vient des données (catalog.json → promo) ----------
 // { active, theme, title, percent, text, ctaLabel, ctaTarget, note, visual, colors }. Rien à coder pour changer d'offre.
@@ -365,7 +366,7 @@ async function loadCatalog() {
   return 200;
 }
 
-// Univers du menu principal (Habillements, Football…) : tout vient des données (catalog.json → universes, et
+// Univers du menu principal (Vêtements, Football…) : tout vient des données (catalog.json → universes, et
 // category.universe). Une catégorie sans univers connu va dans « Autres » ; sans univers du tout, un seul groupe.
 // Un univers sans catégorie n'est pas affiché. Rien à coder pour ajouter un univers ou une catégorie.
 function universesOf(c) {
@@ -380,24 +381,23 @@ function universesOf(c) {
 }
 const countOf = (catId) => state.maps.byCat.get(catId)?.length || 0;
 
+// Contact : WhatsApp (numéro et message dans les données). Catalogue, pas commande : le message cite la pièce et
+// son lien, rien d'autre (ni taille, ni option choisie).
 function contactLinks(p) {
   const c = state.catalog?.contact || {};
   const placeholders = state.catalog?.contactPlaceholders || [];
   const link = p ? `${window.location.origin}${BASE}/p/${p.slug}` : `${window.location.origin}${BASE}/`;
-  const size = p && state.size?.slug === p.slug ? state.size.value : null;
-  const name = p ? (size ? `${p.name} (taille ${size})` : p.name) : '';
   const tpl = c.whatsapp?.message || 'Bonjour, je suis intéressé(e) par « {produit} » : {lien}';
-  const text = p ? tpl.replaceAll('{produit}', name).replaceAll('{lien}', link) : 'Bonjour, j’ai une question sur le catalogue Le Débarras.';
+  const text = p ? tpl.replaceAll('{produit}', p.name).replaceAll('{lien}', link) : 'Bonjour, j’ai une question sur le catalogue Le Débarras.';
   const out = [];
-  if (c.whatsapp) {
-    out.push({ kind: 'whatsapp', label: p ? 'Demander sur WhatsApp' : 'Écrire sur WhatsApp', href: `https://wa.me/${c.whatsapp.number}?text=${encodeURIComponent(text)}` });
+  const number = String(c.whatsapp?.number || '').replace(/\D/g, '');
+  if (number) {
+    out.push({ kind: 'whatsapp', label: p ? 'Demander sur WhatsApp' : 'Écrire sur WhatsApp', href: `https://wa.me/${number}?text=${encodeURIComponent(text)}` });
   } else if (placeholders.includes('whatsapp')) {
     // Maquette : pas encore de numéro. On montre le message qui partira, sans rien ouvrir.
-    const preview = p ? tpl.replaceAll('{produit}', name).replaceAll('{lien}', '[lien de la pièce]') : text;
+    const preview = p ? tpl.replaceAll('{produit}', p.name).replaceAll('{lien}', '[lien de la pièce]') : text;
     out.push({ kind: 'whatsapp', label: p ? 'Demander sur WhatsApp' : 'Écrire sur WhatsApp', toast: `Maquette — WhatsApp s’ouvrira avec : « ${preview} »` });
   }
-  if (c.instagram) out.push({ kind: 'instagram', label: 'Écrire sur Instagram', href: `https://ig.me/m/${encodeURIComponent(c.instagram.username)}` });
-  else if (placeholders.includes('instagram')) out.push({ kind: 'instagram', label: 'Écrire sur Instagram', toast: 'Maquette : ce bouton ouvrira Instagram dès que le compte du Débarras sera ajouté.' });
   if (c.phone) out.push({ kind: 'phone', label: 'Appeler', href: `tel:${c.phone.number.replace(/[^+\d]/g, '')}` });
   return out;
 }
@@ -521,6 +521,23 @@ function priceLine(p, big = false) {
     big && d ? h('span', { class: 'deal' }, `−${d} %`) : null);
 }
 
+/** Simple mention à côté du prix (ex. « Flocage : +5 € » pour les maillots) : priceNote de la pièce ou de sa
+ *  catégorie (données). Une mention, pas une option : rien à cocher, rien d'ajouté au message. */
+function priceNote(...from) {
+  const t = from.map((x) => x?.priceNote).find((v) => typeof v === 'string' && v.trim());
+  return t ? h('p', { class: 'price-note' }, t.trim()) : null;
+}
+
+/** Coloris (facultatifs) d'une pièce : [{ name, media? }] des données. Le 1er est celui de ses photos. */
+const colorsOf = (p) => (Array.isArray(p.colors) ? p.colors : []).filter((c) => c && typeof c.name === 'string' && c.name.trim());
+/** Photos d'un coloris : les siennes ; pour le 1er coloris, à défaut, celles de la pièce. Jamais la photo d'un
+ *  autre coloris sous son nom : un coloris sans photo reste écrit en toutes lettres, sans vignette. */
+function colorImages(p, k) {
+  const own = (Array.isArray(colorsOf(p)[k]?.media) ? colorsOf(p)[k].media : []).filter((m) => m?.type === 'image' && typeof m.src === 'string');
+  if (own.length || k > 0) return own;
+  return p.media.filter((m) => m.type === 'image');
+}
+
 function card(p) {
   const img = p.media.find((m) => m.type === 'image');
   const hasVideo = p.media.some((m) => m.type === 'video');
@@ -534,6 +551,7 @@ function card(p) {
       badge,
       hasVideo ? h('span', { class: 'chip-video' }, icon('play'), 'Vidéo') : null),
     h('span', { class: 'card__name' }, p.name),
+    colorsOf(p).length > 1 ? h('span', { class: 'card__colors' }, `${colorsOf(p).length} coloris`) : null,
     priceLine(p));
 }
 
@@ -670,6 +688,8 @@ function viewHome() {
       hero,
       h('section', { class: 'section', id: 'categories' },
         h('div', { class: 'section__head' }, h('h2', { class: 'section__title brush-under' }, 'Les catégories')),
+        // La mascotte d'accueil (données : home.mascot, home.say) souhaite la bienvenue et précise la qualité.
+        guide('accueil', home.say || 'Bienvenue ! Choisissez un rayon, je vous y emmène.', { art: home.mascot, note: qualityNote() }).root,
         // Une rangée par univers, dans l'ordre du menu principal.
         state.maps.universes.map((u) => h('div', { class: 'universe' },
           state.maps.universes.length > 1 ? h('h3', { class: 'universe__title' }, u.name, h('small', {}, plural(u.cats.reduce((n, x) => n + countOf(x.id), 0)))) : null,
@@ -698,9 +718,10 @@ function viewCategory(id) {
   const u = state.maps.uniOf.get(id);
   document.title = `${cat.name} — ${state.info.brand.name}`;
   // La mascotte présente la catégorie avec son accroche (données) ; sans accroche, une phrase par défaut.
+  // Mascotte de la catégorie si les données en donnent une (category.mascot), sinon la mascotte officielle.
   // Catégorie encore vide : un message propre et les catégories voisines du même univers, jamais une erreur.
   const intro = guide('categorie', items.length ? cat.tagline || `Toutes nos pièces ${cat.name.toLowerCase()}, choisies une à une.`
-    : 'Rien ici pour l’instant : les premières pièces arrivent bientôt !', { first: items.length ? 'enter' : 'nope' });
+    : 'Rien ici pour l’instant : les premières pièces arrivent bientôt !', { first: items.length ? 'enter' : 'nope', art: cat.mascot, note: items.length ? qualityNote() : null });
   const near = (u?.cats || []).filter((x) => x.id !== id && countOf(x.id));
   return h('div', {}, topbar(), mainNav(id),
     h('main', { class: 'page' },
@@ -708,7 +729,8 @@ function viewCategory(id) {
       h('header', { class: 'cat-head' },
         h('div', { class: 'cat-head__title' },
           h('p', { class: 'eyebrow' }, u && state.maps.universes.length > 1 ? `${u.name} · ${plural(items.length)}` : plural(items.length)),
-          h('h1', { class: 'brush-under' }, cat.name)),
+          h('h1', { class: 'brush-under' }, cat.name),
+          priceNote(cat)),
         intro.root),
       items.length ? h('div', { class: 'grid' }, items.map(card))
         : h('div', { class: 'empty empty--cat' }, h('strong', {}, 'Bientôt de nouvelles pièces ici.'),
@@ -718,7 +740,8 @@ function viewCategory(id) {
       footer()));
 }
 
-function gallery(p, images, video) {
+/** Galerie d'un jeu de photos (celles de la pièce ou d'un coloris) : [galerie, vignettes]. */
+function galleryParts(images, video) {
   const n = images.length;
   const counter = n > 1 ? h('div', { class: 'gallery__count', 'aria-hidden': 'true' }, `1 / ${n}`) : null;
   const track = h('div', { class: 'gallery__track' }, images.map((m, i) =>
@@ -738,7 +761,31 @@ function gallery(p, images, video) {
     class: 'gallery__video', type: 'button',
     onclick: () => document.getElementById('video')?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'center' }),
   }, icon('play'), 'Voir la vidéo') : null;
-  return h('div', { class: 'product__media' }, h('div', { class: 'gallery' }, track, counter, chip), thumbs);
+  return [h('div', { class: 'gallery' }, track, counter, chip), thumbs];
+}
+
+// Coloris (facultatifs) : une vignette par coloris qui a ses photos ; la toucher affiche ses photos dans la galerie.
+// Un coloris sans photo reste écrit en toutes lettres (aucune photo d'un autre coloris montrée sous son nom).
+function colorsBlock(p, onPick) {
+  const colors = colorsOf(p);
+  if (!colors.length) return null;
+  const current = h('strong', { class: 'colors__current' }, colors[0].name);
+  const list = h('div', { class: 'colors__list', role: 'group', 'aria-label': 'Coloris' });
+  list.append(...colors.map((c, k) => {
+    const imgs = colorImages(p, k);
+    if (!imgs.length) return h('span', { class: 'swatch swatch--text' }, h('span', { class: 'swatch__name' }, c.name));
+    return h('button', {
+      class: 'swatch', type: 'button', 'aria-pressed': String(k === 0), 'aria-label': `Voir le coloris ${c.name}`,
+      onclick: (e) => {
+        if (e.currentTarget.getAttribute('aria-pressed') === 'true') return;
+        for (const b of list.querySelectorAll('button.swatch')) b.setAttribute('aria-pressed', String(b === e.currentTarget));
+        current.textContent = typo(c.name);
+        onPick(imgs);
+      },
+    }, h('span', { class: 'swatch__img' }, picture(imgs[0], { sizes: '56px' })), h('span', { class: 'swatch__name' }, c.name));
+  }));
+  return h('div', { class: 'colors' },
+    h('p', { class: 'colors__label' }, colors.length > 1 ? `${colors.length} coloris · ` : 'Coloris · ', current), list);
 }
 
 function videoBlock(p, v) {
@@ -759,35 +806,20 @@ function videoBlock(p, v) {
   return h('section', { class: 'video-block', id: 'video' }, h('h2', {}, 'En vidéo'), h('div', { class: 'video-block__frame' }, el));
 }
 
-// Tailles : si plusieurs, le client en touche une et elle est ajoutée au message de contact ; la mascotte le confirme.
-const SIZE_HINT = 'Touchez votre taille : je l’ajoute à votre message.';
-function sizesBlock(p, cta, g) {
-  if (!p.sizes?.length) return null;
-  if (p.sizes.length === 1 || p.status === 'vendu') {
-    return h('div', { class: 'sizes' },
-      h('span', { class: 'sizes__label' }, p.sizes.length > 1 ? 'Tailles' : 'Taille'),
-      h('div', { class: 'sizes__list' }, p.sizes.map((s) => h('span', { class: 'size' }, s))));
-  }
-  const buttons = p.sizes.map((s) => h('button', {
-    class: 'size', type: 'button', 'aria-pressed': String(state.size?.slug === p.slug && state.size.value === s),
-    onclick: (e) => {
-      const same = state.size?.slug === p.slug && state.size.value === s;
-      state.size = same ? null : { slug: p.slug, value: s };
-      for (const b of buttons) b.setAttribute('aria-pressed', String(!same && b === e.currentTarget));
-      cta.replaceChildren(...contactButtons(p));
-      g?.say(same ? SIZE_HINT : `Taille ${s}, c’est noté : je l’ajoute à votre message.`, same ? 'boop' : 'hop');
-    },
-  }, s));
-  return h('div', { class: 'sizes' },
-    h('span', { class: 'sizes__label' }, 'Tailles disponibles'),
-    h('div', { class: 'sizes__list', role: 'group', 'aria-label': 'Choisir une taille' }, buttons),
-    g ? null : h('span', { class: 'sizes__hint' }, 'Touchez votre taille : elle sera indiquée dans votre message.'));
+// Tailles : toutes les tailles disponibles, écrites en clair (catalogue : rien à cocher, rien d'ajouté au message).
+function sizesBlock(p) {
+  const list = (Array.isArray(p.sizes) ? p.sizes : []).filter((s) => typeof s === 'string' || typeof s === 'number').map((s) => String(s).trim()).filter(Boolean);
+  if (!list.length) return null;
+  return h('p', { class: 'sizes' },
+    h('span', { class: 'sizes__label' }, list.length > 1 ? (p.status === 'vendu' ? 'Tailles' : 'Tailles disponibles') : 'Taille'),
+    h('span', { class: 'sizes__text' }, list.join(' · ')));
 }
 
-function productGuide(p) {
-  if (p.status === 'vendu') return guide('fiche', 'Celle-ci a trouvé preneur. Écrivez-nous : je vous préviens si une pièce semblable arrive.', { first: 'nope' });
-  if (p.sizes?.length > 1) return guide('fiche', state.size?.slug === p.slug ? `Taille ${state.size.value}, c’est noté : je l’ajoute à votre message.` : SIZE_HINT);
-  return guide('fiche', 'Cette pièce vous plaît ? Écrivez-nous, je transmets !');
+// Sur la fiche, la mascotte de la catégorie (sinon l'officielle) invite à écrire et précise la qualité.
+function productGuide(p, cat) {
+  const opts = { art: cat.mascot, note: qualityNote() };
+  if (p.status === 'vendu') return guide('fiche', 'Celle-ci a trouvé preneur. Écrivez-nous : je vous préviens si une pièce semblable arrive.', { ...opts, first: 'nope' });
+  return guide('fiche', 'Cette pièce vous plaît ? Écrivez-nous, je transmets !', opts);
 }
 
 function viewProduct(slug) {
@@ -795,15 +827,19 @@ function viewProduct(slug) {
   if (!p) return viewNotFound();
   const cat = state.maps.cat.get(p.category);
   document.title = `${p.name} — ${state.info.brand.name}`;
-  const images = p.media.filter((m) => m.type === 'image');
+  const images = colorImages(p, 0);
   const video = p.media.find((m) => m.type === 'video');
   const catPath = `/c/${cat.id}`;
   const related = (state.maps.byCat.get(cat.id) || []).filter((x) => x.id !== p.id && x.status !== 'vendu').slice(0, 8);
-  if (state.size?.slug !== p.slug) state.size = null;
   const cta = h('div', { class: 'cta' }, contactButtons(p));
-  const g = productGuide(p);
-  // Avec un choix de taille, la mascotte se tient juste sous les tailles (elle confirme le choix là où on le fait).
-  const sizeGuide = p.sizes?.length > 1 && p.status !== 'vendu';
+  const g = productGuide(p, cat);
+  // Photos + coloris : toucher un coloris remplace les photos de la galerie par les siennes (la vidéo reste).
+  const media = h('div', { class: 'product__media' });
+  const swatches = colorsBlock(p, (imgs) => {
+    media.replaceChildren(...galleryParts(imgs, video).filter(Boolean), swatches);
+    media.querySelector('.gallery').classList.add('is-swap');
+  });
+  media.append(...(images.length ? galleryParts(images, video) : []).filter(Boolean), ...(swatches ? [swatches] : []));
   const back = h('a', {
     class: 'back', href: catPath,
     onclick: (e) => {
@@ -816,17 +852,17 @@ function viewProduct(slug) {
     h('main', { class: 'page' },
       back,
       h('article', { class: 'product' },
-        images.length ? gallery(p, images, video) : null,
+        media.childElementCount ? media : null,
         h('div', { class: 'info' },
           h('p', { class: 'eyebrow' }, cat.name),
           h('h1', {}, p.name),
           priceLine(p, true),
+          priceNote(p, cat),
           p.status ? h('p', { class: `status status--${p.status}` }, STATUS[p.status]) : null,
-          sizesBlock(p, cta, g),
-          sizeGuide ? g.root : null,
+          sizesBlock(p),
           p.description ? h('p', { class: 'desc' }, p.description) : null,
           p.details?.length ? h('dl', { class: 'details' }, p.details.map((d) => [h('dt', {}, d.label), h('dd', {}, d.value)])) : null,
-          sizeGuide ? null : g.root,
+          g.root,
           cta,
           h('p', { class: 'cta__note' }, 'Pas de paiement en ligne : on vous répond pour la réserver.'))),
       video ? videoBlock(p, video) : null,
@@ -859,7 +895,7 @@ function openMenu() {
       h('span', {}, pr.title || 'Offre du moment'), pr.percent !== null ? h('small', {}, `−${pr.percent}\u202f%`) : null) : null,
     h('nav', { class: 'menu__nav', 'aria-label': 'Catégories' },
       h('a', { href: '/', 'data-link': '' }, h('span', {}, 'Accueil'), h('small', {}, plural(state.catalog.products.length))),
-      // Mêmes univers que le menu principal (Habillements, Football…), chacun avec ses catégories.
+      // Mêmes univers que le menu principal (Vêtements, Football…), chacun avec ses catégories.
       state.maps.universes.map((u) => [
         state.maps.universes.length > 1 ? h('p', { class: 'menu__group' }, u.name) : null,
         u.cats.map((c) => h('a', { href: `/c/${c.id}`, 'data-link': '' }, h('span', {}, c.name), h('small', {}, plural(countOf(c.id)))))])),
