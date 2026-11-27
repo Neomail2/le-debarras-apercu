@@ -680,6 +680,8 @@ p { margin: 0; }
   /* Ordinateur : la place ne manque pas, les sélections s'affichent en grille (plus de rangée coupée à droite). */
   .scroller.rail { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 28px 18px; overflow: visible; }
   .rail .card { width: auto; max-width: none; }
+  /* Coloris : à la souris, une rangée qui défile sans barre cache la suite (20 coloris) → pastilles sur plusieurs lignes. */
+  .colors__list { flex-wrap: wrap; overflow-x: visible; }
   .hero picture, .hero .ph { aspect-ratio: 21 / 9; }
   .hero img { object-position: 50% 62%; }
   .promo__body { padding-left: 56px; }
