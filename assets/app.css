@@ -12,7 +12,7 @@
   --chocolat-doux: #6f4c3a;  /* textes secondaires (6,6:1 sur crème) */
   --caramel: #c79464;        /* touches caramel (décor, pinceaux ; jamais en texte) */
   --caramel-clair: #e8c9a6;  /* caramel doux (fonds) */
-  --marron-chaud: #7f4a32;   /* marron chaud : accents, liens, remises (6,3:1 sur crème) */
+  --marron-chaud: #7a4e3c;   /* marron chaud (sans reflet cuivré) : accents, liens, remises (6,2:1 sur crème) */
   --ombre: 83, 48, 31;       /* ombres et voiles = chocolat transparent (jamais de noir) */
   /* Noms historiques (V1) conservés : les réglages theme.colors peuvent toujours les surcharger. */
   --bg: var(--creme);
