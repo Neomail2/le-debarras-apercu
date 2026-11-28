@@ -106,7 +106,7 @@
       "name": "Chaussures",
       "tagline": "Baskets sport ou lux, sabots et sandales.",
       "universe": "chaussures",
-      "count": 15,
+      "count": 16,
       "cover": {
         "type": "image",
         "src": "couverture-chaussures-v8-1600.webp",
@@ -1818,6 +1818,149 @@
       ]
     },
     {
+      "id": "p-chaussure-sport-a-alveoles",
+      "slug": "chaussure-sport-a-alveoles",
+      "category": "chaussures",
+      "name": "Chaussure sport à alvéoles",
+      "description": "Baskets running en mesh respirant, sur une épaisse semelle à alvéoles. Cinq coloris, du blanc et noir au blanc et marine.",
+      "featured": false,
+      "media": [
+        {
+          "type": "image",
+          "src": "chaussure-sport-a-alveoles-1-1600.webp",
+          "w": 1600,
+          "h": 2000,
+          "thumb": "chaussure-sport-a-alveoles-1-800.webp",
+          "small": "chaussure-sport-a-alveoles-1-400.webp",
+          "alt": "Chaussure sport à alvéoles, coloris blanc et noir, vue 1"
+        },
+        {
+          "type": "image",
+          "src": "chaussure-sport-a-alveoles-2-1600.webp",
+          "w": 1600,
+          "h": 2000,
+          "thumb": "chaussure-sport-a-alveoles-2-800.webp",
+          "small": "chaussure-sport-a-alveoles-2-400.webp",
+          "alt": "Chaussure sport à alvéoles, coloris blanc et noir, vue 2"
+        },
+        {
+          "type": "image",
+          "src": "chaussure-sport-a-alveoles-3-1600.webp",
+          "w": 1600,
+          "h": 2000,
+          "thumb": "chaussure-sport-a-alveoles-3-800.webp",
+          "small": "chaussure-sport-a-alveoles-3-400.webp",
+          "alt": "Chaussure sport à alvéoles, coloris blanc et noir, vue 3"
+        },
+        {
+          "type": "video",
+          "src": "chaussure-sport-a-alveoles-video.mp4",
+          "w": 464,
+          "h": 580,
+          "poster": "chaussure-sport-a-alveoles-1-800.webp"
+        }
+      ],
+      "price": 120,
+      "status": "disponible",
+      "colors": [
+        {
+          "name": "Blanc et noir"
+        },
+        {
+          "name": "Blanc et gris clair",
+          "media": [
+            {
+              "type": "image",
+              "src": "chaussure-sport-a-alveoles-blanc-et-gris-clair-1-1600.webp",
+              "w": 1600,
+              "h": 2000,
+              "thumb": "chaussure-sport-a-alveoles-blanc-et-gris-clair-1-800.webp",
+              "small": "chaussure-sport-a-alveoles-blanc-et-gris-clair-1-400.webp",
+              "alt": "Chaussure sport à alvéoles, coloris blanc et gris clair, vue 1"
+            },
+            {
+              "type": "image",
+              "src": "chaussure-sport-a-alveoles-blanc-et-gris-clair-2-1600.webp",
+              "w": 1600,
+              "h": 2000,
+              "thumb": "chaussure-sport-a-alveoles-blanc-et-gris-clair-2-800.webp",
+              "small": "chaussure-sport-a-alveoles-blanc-et-gris-clair-2-400.webp",
+              "alt": "Chaussure sport à alvéoles, coloris blanc et gris clair, vue 2"
+            }
+          ]
+        },
+        {
+          "name": "Blanc et bleu-vert",
+          "media": [
+            {
+              "type": "image",
+              "src": "chaussure-sport-a-alveoles-blanc-et-bleu-vert-1-1600.webp",
+              "w": 1600,
+              "h": 2000,
+              "thumb": "chaussure-sport-a-alveoles-blanc-et-bleu-vert-1-800.webp",
+              "small": "chaussure-sport-a-alveoles-blanc-et-bleu-vert-1-400.webp",
+              "alt": "Chaussure sport à alvéoles, coloris blanc et bleu-vert, vue 1"
+            },
+            {
+              "type": "image",
+              "src": "chaussure-sport-a-alveoles-blanc-et-bleu-vert-2-1600.webp",
+              "w": 1600,
+              "h": 2000,
+              "thumb": "chaussure-sport-a-alveoles-blanc-et-bleu-vert-2-800.webp",
+              "small": "chaussure-sport-a-alveoles-blanc-et-bleu-vert-2-400.webp",
+              "alt": "Chaussure sport à alvéoles, coloris blanc et bleu-vert, vue 2"
+            }
+          ]
+        },
+        {
+          "name": "Gris perle et noir",
+          "media": [
+            {
+              "type": "image",
+              "src": "chaussure-sport-a-alveoles-gris-perle-et-noir-1-1600.webp",
+              "w": 1600,
+              "h": 2000,
+              "thumb": "chaussure-sport-a-alveoles-gris-perle-et-noir-1-800.webp",
+              "small": "chaussure-sport-a-alveoles-gris-perle-et-noir-1-400.webp",
+              "alt": "Chaussure sport à alvéoles, coloris gris perle et noir, vue 1"
+            },
+            {
+              "type": "image",
+              "src": "chaussure-sport-a-alveoles-gris-perle-et-noir-2-1600.webp",
+              "w": 1600,
+              "h": 2000,
+              "thumb": "chaussure-sport-a-alveoles-gris-perle-et-noir-2-800.webp",
+              "small": "chaussure-sport-a-alveoles-gris-perle-et-noir-2-400.webp",
+              "alt": "Chaussure sport à alvéoles, coloris gris perle et noir, vue 2"
+            }
+          ]
+        },
+        {
+          "name": "Blanc et marine",
+          "media": [
+            {
+              "type": "image",
+              "src": "chaussure-sport-a-alveoles-blanc-et-marine-1-1600.webp",
+              "w": 1600,
+              "h": 2000,
+              "thumb": "chaussure-sport-a-alveoles-blanc-et-marine-1-800.webp",
+              "small": "chaussure-sport-a-alveoles-blanc-et-marine-1-400.webp",
+              "alt": "Chaussure sport à alvéoles, coloris blanc et marine, vue 1"
+            },
+            {
+              "type": "image",
+              "src": "chaussure-sport-a-alveoles-blanc-et-marine-2-1600.webp",
+              "w": 1600,
+              "h": 2000,
+              "thumb": "chaussure-sport-a-alveoles-blanc-et-marine-2-800.webp",
+              "small": "chaussure-sport-a-alveoles-blanc-et-marine-2-400.webp",
+              "alt": "Chaussure sport à alvéoles, coloris blanc et marine, vue 2"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "id": "p-chaussure-sport-3",
       "slug": "chaussure-sport-3",
       "category": "chaussures",
@@ -3092,6 +3235,6 @@
     "showSizes": false,
     "showStatus": true
   },
-  "updatedAt": "2026-11-28T02:06:08.619Z",
+  "updatedAt": "2026-11-28T02:45:50.663Z",
   "quality": "Toutes nos pièces sont en qualité 1.1 !"
 }
