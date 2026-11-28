@@ -247,10 +247,13 @@ p { margin: 0; }
 .unav { position: sticky; top: calc(var(--topbar) + var(--safe-t)); z-index: 35; padding: 4px var(--pad) 10px; background: rgba(247, 239, 228, .96); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
 .unav__bar { display: grid; grid-template-columns: repeat(var(--n, 2), minmax(0, 1fr)); gap: 8px; }
 @media (max-width: 719px) {
-  /* Plus de deux univers sur téléphone : la barre défile de côté plutôt que de couper les noms. */
-  .unav__bar.is-many { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: max-content; overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain; }
+  /* Plus de deux univers sur téléphone : chaque bouton prend la largeur de son nom (police un peu plus petite) ; la
+     barre ne défile de côté que si les noms ne tiennent pas tous sur la ligne. Aucun nom n'est coupé. */
+  .unav__bar.is-many { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain; }
   .unav__bar.is-many::-webkit-scrollbar { display: none; }
-  .unav__bar.is-many .unav__btn { padding: 0 14px; }
+  .unav__bar.is-many .unav__item { flex: 1 0 auto; }
+  .unav__bar.is-many .unav__btn { padding: 0 4px; gap: 3px; font-size: clamp(11px, 3.3vw, 16px); }
+  .unav__bar.is-many .unav__btn svg { width: 11px; height: 11px; }
 }
 .unav__btn {
   position: relative; width: 100%; min-height: 48px; padding: 0 8px; display: flex; align-items: center; justify-content: center; gap: 6px;
@@ -416,6 +419,8 @@ p { margin: 0; }
 .universe + .universe { margin-top: 26px; }
 .universe__title { display: flex; align-items: baseline; gap: 10px; padding: 0 var(--pad); margin: 0 0 12px; font-size: 19px; color: var(--chocolat); }
 .universe__title small { font-family: var(--font); font-style: normal; text-transform: none; font-size: 12px; font-weight: 800; letter-spacing: .06em; color: var(--marron-chaud); }
+/* Rayon seul dans son univers : le titre de l'univers donne déjà le nombre de pièces, pas de doublon sur la vignette. */
+.tiles[data-n="1"] .tile__count { display: none; }
 @media (max-width: 719px) {
   /* Nombre impair de catégories : la dernière vignette prend toute la largeur (pas de case vide). */
   .tiles .tile:last-child:nth-child(odd) { grid-column: 1 / -1; }
@@ -453,7 +458,7 @@ p { margin: 0; }
 .chip-video { position: absolute; z-index: 2; right: 10px; bottom: 10px; display: inline-flex; align-items: center; gap: 5px; padding: 5px 9px 5px 7px; border-radius: 999px; background: rgba(var(--ombre), .78); color: var(--blanc-casse); font-size: 11px; font-weight: 700; }
 .chip-video svg { width: 12px; height: 12px; }
 .card.is-sold .ph img { filter: grayscale(.5) sepia(.2); opacity: .72; }
-.rail .card { flex: none; width: 44vw; max-width: 220px; scroll-snap-align: start; }
+.rail .card { flex: none; width: 36vw; max-width: 220px; scroll-snap-align: start; } /* 2 cartes et la moitié de la 3e : on voit que ça défile */
 
 /* ---------- Page catégorie : la mascotte présente la catégorie ---------- */
 .cat-head { padding: 18px var(--pad) 18px; display: grid; gap: 14px; }

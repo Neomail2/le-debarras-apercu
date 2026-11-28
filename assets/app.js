@@ -669,7 +669,10 @@ async function openCatalog(welcome, m) {
 function viewHome() {
   const c = state.catalog;
   document.title = `${state.info.brand.name} — Catalogue privé`;
-  const featured = c.products.filter((p) => p.featured);
+  // Coups de cœur : les pièces en vedette (données : featured), rangées par leur rang (featured = 1, 2, 3…) s'il est
+  // donné, sinon dans l'ordre du catalogue (featured = true).
+  const rank = (p) => (typeof p.featured === 'number' ? p.featured : Infinity);
+  const featured = c.products.filter((p) => p.featured).sort((a, b) => (rank(a) === rank(b) ? 0 : rank(a) - rank(b)));
   const home = c.home || {};
   const heroImg = h('img', { src: mediaUrl(home.heroMobile || home.heroDesktop || ''), alt: '', decoding: 'async', fetchpriority: 'high' });
   const hero = home.heroMobile || home.heroDesktop
@@ -704,7 +707,7 @@ function viewHome() {
       h('section', { class: 'how' },
         h('h2', {}, 'Une pièce vous plaît ?'),
         h('ol', {},
-          h('li', {}, 'Ouvrez sa fiche : photos, vidéo, tailles et prix.'),
+          h('li', {}, 'Ouvrez sa fiche : photos, coloris et prix.'),
           h('li', {}, 'Écrivez-nous en un geste, l’article est indiqué dans le message.'),
           h('li', {}, 'On vous répond vite pour la réserver.')),
         h('div', { class: 'how__cta' }, contactButtons(null))),
@@ -712,7 +715,14 @@ function viewHome() {
 }
 
 function viewCategory(id) {
-  const cat = state.maps.cat.get(id);
+  let cat = state.maps.cat.get(id);
+  // Ancienne adresse d'un rayon regroupé (données : category.aliases) : l'adresse devient celle du nouveau rayon.
+  const to = cat ? null : state.catalog.categories.find((x) => Array.isArray(x.aliases) && x.aliases.includes(id));
+  if (to) {
+    window.history.replaceState(window.history.state, '', `${BASE}/c/${to.id}`);
+    cat = to;
+    id = to.id;
+  }
   if (!cat) return viewNotFound();
   const items = state.maps.byCat.get(id) || [];
   const u = state.maps.uniOf.get(id);
