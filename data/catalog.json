@@ -19,7 +19,7 @@
       "name": "Hauts & pulls",
       "tagline": "T-shirt, chemise, pull et maille, pour tous les jours.",
       "universe": "vetements",
-      "count": 5,
+      "count": 7,
       "cover": {
         "type": "image",
         "src": "veste-en-maille-1-1600.webp",
@@ -44,7 +44,7 @@
       "name": "Vestes & doudounes",
       "tagline": "Vestes de mi-saison et doudounes bien chaudes.",
       "universe": "vetements",
-      "count": 12,
+      "count": 13,
       "cover": {
         "type": "image",
         "src": "doudoune-6-1-1600.webp",
@@ -69,7 +69,7 @@
       "name": "Survêtements",
       "tagline": "Survêtements et ensembles assortis, à porter au quotidien.",
       "universe": "vetements",
-      "count": 5,
+      "count": 6,
       "cover": {
         "type": "image",
         "src": "veste-de-survetement-1-1600.webp",
@@ -106,7 +106,7 @@
       "name": "Chaussures",
       "tagline": "Baskets sport ou lux, sabots et sandales.",
       "universe": "chaussures",
-      "count": 16,
+      "count": 18,
       "cover": {
         "type": "image",
         "src": "couverture-chaussures-v8-1600.webp",
@@ -346,6 +346,48 @@
       ]
     },
     {
+      "id": "p-pull-a-monogramme",
+      "slug": "pull-a-monogramme",
+      "category": "hauts-pulls",
+      "name": "Pull à monogramme",
+      "description": "Pull col rond gris chiné en maille fine, avec un grand monogramme blanc sur le devant. Bords côtelés au col, aux poignets et en bas.",
+      "featured": false,
+      "media": [
+        {
+          "type": "image",
+          "src": "pull-a-monogramme-1-1600.webp",
+          "w": 1600,
+          "h": 2000,
+          "thumb": "pull-a-monogramme-1-800.webp",
+          "small": "pull-a-monogramme-1-400.webp",
+          "alt": "Pull à monogramme, coloris gris chiné, vue 1"
+        },
+        {
+          "type": "image",
+          "src": "pull-a-monogramme-2-1600.webp",
+          "w": 1600,
+          "h": 2000,
+          "thumb": "pull-a-monogramme-2-800.webp",
+          "small": "pull-a-monogramme-2-400.webp",
+          "alt": "Pull à monogramme, coloris gris chiné, vue 2"
+        },
+        {
+          "type": "video",
+          "src": "pull-a-monogramme-video.mp4",
+          "w": 464,
+          "h": 580,
+          "poster": "pull-a-monogramme-1-800.webp"
+        }
+      ],
+      "price": 110,
+      "status": "disponible",
+      "colors": [
+        {
+          "name": "Gris chiné"
+        }
+      ]
+    },
+    {
       "id": "p-pull",
       "slug": "pull",
       "category": "hauts-pulls",
@@ -377,6 +419,41 @@
       "colors": [
         {
           "name": "Beige"
+        }
+      ]
+    },
+    {
+      "id": "p-pull-torsade-blanc",
+      "slug": "pull-torsade-blanc",
+      "category": "hauts-pulls",
+      "name": "Pull torsadé blanc",
+      "description": "Pull en grosse maille torsadée blanche, col rond et petit logo brodé sur la poitrine. Chaud et doux pour l’hiver.",
+      "featured": false,
+      "media": [
+        {
+          "type": "image",
+          "src": "pull-torsade-blanc-1-1600.webp",
+          "w": 1600,
+          "h": 2000,
+          "thumb": "pull-torsade-blanc-1-800.webp",
+          "small": "pull-torsade-blanc-1-400.webp",
+          "alt": "Pull torsadé blanc, coloris blanc, vue 1"
+        },
+        {
+          "type": "image",
+          "src": "pull-torsade-blanc-2-1600.webp",
+          "w": 1600,
+          "h": 2000,
+          "thumb": "pull-torsade-blanc-2-800.webp",
+          "small": "pull-torsade-blanc-2-400.webp",
+          "alt": "Pull torsadé blanc, coloris blanc, vue 2"
+        }
+      ],
+      "price": 120,
+      "status": "disponible",
+      "colors": [
+        {
+          "name": "Blanc"
         }
       ]
     },
@@ -749,6 +826,57 @@
       ]
     },
     {
+      "id": "p-doudoune-anthracite",
+      "slug": "doudoune-anthracite",
+      "category": "vestes-doudounes",
+      "name": "Doudoune anthracite",
+      "description": "Doudoune matelassée gris anthracite à capuche doublée à carreaux, avec écusson sur la manche. Chaude pour tout l’hiver.",
+      "featured": false,
+      "media": [
+        {
+          "type": "image",
+          "src": "doudoune-anthracite-1-1600.webp",
+          "w": 1600,
+          "h": 2000,
+          "thumb": "doudoune-anthracite-1-800.webp",
+          "small": "doudoune-anthracite-1-400.webp",
+          "alt": "Doudoune anthracite, coloris gris anthracite, vue 1"
+        },
+        {
+          "type": "image",
+          "src": "doudoune-anthracite-2-1600.webp",
+          "w": 1600,
+          "h": 2000,
+          "thumb": "doudoune-anthracite-2-800.webp",
+          "small": "doudoune-anthracite-2-400.webp",
+          "alt": "Doudoune anthracite, coloris gris anthracite, vue 2"
+        },
+        {
+          "type": "image",
+          "src": "doudoune-anthracite-3-1600.webp",
+          "w": 1600,
+          "h": 2000,
+          "thumb": "doudoune-anthracite-3-800.webp",
+          "small": "doudoune-anthracite-3-400.webp",
+          "alt": "Doudoune anthracite, coloris gris anthracite, vue 3"
+        },
+        {
+          "type": "video",
+          "src": "doudoune-anthracite-video.mp4",
+          "w": 464,
+          "h": 580,
+          "poster": "doudoune-anthracite-1-800.webp"
+        }
+      ],
+      "price": 180,
+      "status": "disponible",
+      "colors": [
+        {
+          "name": "Gris anthracite"
+        }
+      ]
+    },
+    {
       "id": "p-doudoune-4",
       "slug": "doudoune-4",
       "category": "vestes-doudounes",
@@ -947,6 +1075,50 @@
               "alt": "Doudoune à lentille, coloris gris argenté, vue 2"
             }
           ]
+        }
+      ]
+    },
+    {
+      "id": "p-survetement-bleu-nuit",
+      "slug": "survetement-bleu-nuit",
+      "category": "survetements-vetements",
+      "name": "Survêtement bleu nuit",
+      "description": "Survêtement bleu nuit : sweat zippé à capuche et pantalon de jogging assorti, avec un petit logo rouge brodé. Confortable pour tous les jours.",
+      "featured": false,
+      "media": [
+        {
+          "type": "image",
+          "src": "survetement-bleu-nuit-1-1600.webp",
+          "w": 1600,
+          "h": 2000,
+          "thumb": "survetement-bleu-nuit-1-800.webp",
+          "small": "survetement-bleu-nuit-1-400.webp",
+          "alt": "Survêtement bleu nuit, coloris bleu nuit, vue 1"
+        },
+        {
+          "type": "image",
+          "src": "survetement-bleu-nuit-2-1600.webp",
+          "w": 1600,
+          "h": 2000,
+          "thumb": "survetement-bleu-nuit-2-800.webp",
+          "small": "survetement-bleu-nuit-2-400.webp",
+          "alt": "Survêtement bleu nuit, coloris bleu nuit, vue 2"
+        },
+        {
+          "type": "image",
+          "src": "survetement-bleu-nuit-3-1600.webp",
+          "w": 1600,
+          "h": 2000,
+          "thumb": "survetement-bleu-nuit-3-800.webp",
+          "small": "survetement-bleu-nuit-3-400.webp",
+          "alt": "Survêtement bleu nuit, coloris bleu nuit, vue 3"
+        }
+      ],
+      "price": 110,
+      "status": "disponible",
+      "colors": [
+        {
+          "name": "Bleu nuit"
         }
       ]
     },
@@ -1720,6 +1892,117 @@
       ]
     },
     {
+      "id": "p-chaussure-sport-trail",
+      "slug": "chaussure-sport-trail",
+      "category": "chaussures",
+      "name": "Chaussure sport trail",
+      "description": "Baskets de trail à laçage rapide, renforts en zigzag et semelle crantée pour tous les terrains. Quatre coloris : noir et argent, noir, bleu glacier ou blanc cassé.",
+      "featured": false,
+      "media": [
+        {
+          "type": "image",
+          "src": "chaussure-sport-trail-1-1600.webp",
+          "w": 1600,
+          "h": 2000,
+          "thumb": "chaussure-sport-trail-1-800.webp",
+          "small": "chaussure-sport-trail-1-400.webp",
+          "alt": "Chaussure sport trail, coloris noir et argent, vue 1"
+        },
+        {
+          "type": "image",
+          "src": "chaussure-sport-trail-2-1600.webp",
+          "w": 1600,
+          "h": 2000,
+          "thumb": "chaussure-sport-trail-2-800.webp",
+          "small": "chaussure-sport-trail-2-400.webp",
+          "alt": "Chaussure sport trail, coloris noir et argent, vue 2"
+        },
+        {
+          "type": "video",
+          "src": "chaussure-sport-trail-video.mp4",
+          "w": 464,
+          "h": 580,
+          "poster": "chaussure-sport-trail-1-800.webp"
+        }
+      ],
+      "price": 100,
+      "status": "disponible",
+      "colors": [
+        {
+          "name": "Noir et argent"
+        },
+        {
+          "name": "Noir",
+          "media": [
+            {
+              "type": "image",
+              "src": "chaussure-sport-trail-noir-1-1600.webp",
+              "w": 1600,
+              "h": 2000,
+              "thumb": "chaussure-sport-trail-noir-1-800.webp",
+              "small": "chaussure-sport-trail-noir-1-400.webp",
+              "alt": "Chaussure sport trail, coloris noir, vue 1"
+            },
+            {
+              "type": "image",
+              "src": "chaussure-sport-trail-noir-2-1600.webp",
+              "w": 1600,
+              "h": 2000,
+              "thumb": "chaussure-sport-trail-noir-2-800.webp",
+              "small": "chaussure-sport-trail-noir-2-400.webp",
+              "alt": "Chaussure sport trail, coloris noir, vue 2"
+            }
+          ]
+        },
+        {
+          "name": "Bleu glacier",
+          "media": [
+            {
+              "type": "image",
+              "src": "chaussure-sport-trail-bleu-glacier-1-1600.webp",
+              "w": 1600,
+              "h": 2000,
+              "thumb": "chaussure-sport-trail-bleu-glacier-1-800.webp",
+              "small": "chaussure-sport-trail-bleu-glacier-1-400.webp",
+              "alt": "Chaussure sport trail, coloris bleu glacier, vue 1"
+            },
+            {
+              "type": "image",
+              "src": "chaussure-sport-trail-bleu-glacier-2-1600.webp",
+              "w": 1600,
+              "h": 2000,
+              "thumb": "chaussure-sport-trail-bleu-glacier-2-800.webp",
+              "small": "chaussure-sport-trail-bleu-glacier-2-400.webp",
+              "alt": "Chaussure sport trail, coloris bleu glacier, vue 2"
+            }
+          ]
+        },
+        {
+          "name": "Blanc cassé",
+          "media": [
+            {
+              "type": "image",
+              "src": "chaussure-sport-trail-blanc-casse-1-1600.webp",
+              "w": 1600,
+              "h": 2000,
+              "thumb": "chaussure-sport-trail-blanc-casse-1-800.webp",
+              "small": "chaussure-sport-trail-blanc-casse-1-400.webp",
+              "alt": "Chaussure sport trail, coloris blanc cassé, vue 1"
+            },
+            {
+              "type": "image",
+              "src": "chaussure-sport-trail-blanc-casse-2-1600.webp",
+              "w": 1600,
+              "h": 2000,
+              "thumb": "chaussure-sport-trail-blanc-casse-2-800.webp",
+              "small": "chaussure-sport-trail-blanc-casse-2-400.webp",
+              "alt": "Chaussure sport trail, coloris blanc cassé, vue 2"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "id": "p-chaussure-sport-9",
       "slug": "chaussure-sport-9",
       "category": "chaussures",
@@ -2022,6 +2305,57 @@
               "alt": "Chaussure sport rose, coloris argent et rose, vue 2"
             }
           ]
+        }
+      ]
+    },
+    {
+      "id": "p-chaussure-sport-grise",
+      "slug": "chaussure-sport-grise",
+      "category": "chaussures",
+      "name": "Chaussure sport grise",
+      "description": "Baskets basses façon daim gris, bandes et talon crème sur semelle gomme. Un classique rétro qui va avec tout.",
+      "featured": false,
+      "media": [
+        {
+          "type": "image",
+          "src": "chaussure-sport-grise-1-1600.webp",
+          "w": 1600,
+          "h": 2000,
+          "thumb": "chaussure-sport-grise-1-800.webp",
+          "small": "chaussure-sport-grise-1-400.webp",
+          "alt": "Chaussure sport grise, coloris gris et crème, vue 1"
+        },
+        {
+          "type": "image",
+          "src": "chaussure-sport-grise-2-1600.webp",
+          "w": 1600,
+          "h": 2000,
+          "thumb": "chaussure-sport-grise-2-800.webp",
+          "small": "chaussure-sport-grise-2-400.webp",
+          "alt": "Chaussure sport grise, coloris gris et crème, vue 2"
+        },
+        {
+          "type": "image",
+          "src": "chaussure-sport-grise-3-1600.webp",
+          "w": 1600,
+          "h": 2000,
+          "thumb": "chaussure-sport-grise-3-800.webp",
+          "small": "chaussure-sport-grise-3-400.webp",
+          "alt": "Chaussure sport grise, coloris gris et crème, vue 3"
+        },
+        {
+          "type": "video",
+          "src": "chaussure-sport-grise-video.mp4",
+          "w": 720,
+          "h": 900,
+          "poster": "chaussure-sport-grise-1-800.webp"
+        }
+      ],
+      "price": 130,
+      "status": "disponible",
+      "colors": [
+        {
+          "name": "Gris et crème"
         }
       ]
     },
@@ -3235,6 +3569,6 @@
     "showSizes": false,
     "showStatus": true
   },
-  "updatedAt": "2026-11-28T02:45:50.663Z",
+  "updatedAt": "2026-11-28T04:00:03.160Z",
   "quality": "Toutes nos pièces sont en qualité 1.1 !"
 }
